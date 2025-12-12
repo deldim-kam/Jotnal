@@ -115,5 +115,33 @@ func GetMigrations() []Migration {
 				CREATE INDEX IF NOT EXISTS idx_bookmarks_file_id ON bookmarks(file_id);
 			`,
 		},
+		{
+			Version:     5,
+			Description: "Добавление таблицы сотрудников с иерархической структурой",
+			SQL: `
+				-- Таблица сотрудников с иерархией
+				CREATE TABLE IF NOT EXISTS employees (
+					id INTEGER PRIMARY KEY AUTOINCREMENT,
+					first_name TEXT NOT NULL,
+					last_name TEXT NOT NULL,
+					middle_name TEXT,
+					email TEXT UNIQUE,
+					position TEXT NOT NULL,
+					department TEXT,
+					manager_id INTEGER,
+					phone TEXT,
+					hire_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+					created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+					updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+					FOREIGN KEY (manager_id) REFERENCES employees(id) ON DELETE SET NULL
+				);
+
+				-- Индексы для оптимизации иерархических запросов
+				CREATE INDEX IF NOT EXISTS idx_employees_manager_id ON employees(manager_id);
+				CREATE INDEX IF NOT EXISTS idx_employees_department ON employees(department);
+				CREATE INDEX IF NOT EXISTS idx_employees_email ON employees(email);
+				CREATE INDEX IF NOT EXISTS idx_employees_full_name ON employees(last_name, first_name);
+			`,
+		},
 	}
 }

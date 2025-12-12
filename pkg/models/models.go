@@ -66,3 +66,19 @@ type Bookmark struct {
 	Description string    `json:"description"`
 	CreatedAt   time.Time `json:"created_at"`
 }
+
+// Employee представляет сотрудника с иерархической структурой
+type Employee struct {
+	ID         int64     `json:"id"`
+	FirstName  string    `json:"first_name"`
+	LastName   string    `json:"last_name"`
+	MiddleName string    `json:"middle_name"`
+	Email      string    `json:"email"`
+	Position   string    `json:"position"`
+	Department string    `json:"department"`
+	ManagerID  *int64    `json:"manager_id"` // NULL для главного руководителя
+	Phone      string    `json:"phone"`
+	HireDate   time.Time `json:"hire_date"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
+}
