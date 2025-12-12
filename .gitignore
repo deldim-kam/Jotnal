@@ -17,12 +17,18 @@ bld/
 # Visual Studio cache/options directory
 .vs/
 
-# User-specific files
-*.rsuser
-*.suo
-*.user
-*.userosscache
-*.sln.docstates
+# Output of the go coverage tool
+*.out
+
+# Go workspace file
+go.work
+
+# Compiled binary
+jotnal
+jotnal-darwin
+
+# Build directory
+build/
 
 # Database files
 *.db
