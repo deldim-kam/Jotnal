@@ -120,7 +120,8 @@ go build -o jotnal ./cmd/ide
 4. **file_history** - история изменений файлов
 5. **snippets** - сниппеты кода
 6. **bookmarks** - закладки в файлах
-7. **schema_version** - версионирование схемы БД
+7. **employees** - сотрудники с иерархической структурой (начальник-подчиненный)
+8. **schema_version** - версионирование схемы БД
 
 ### Миграции
 
@@ -130,7 +131,15 @@ go build -o jotnal ./cmd/ide
 - Применяет недостающие миграции
 - Обновляет существующую БД до актуальной версии
 
-Текущая версия схемы: **4**
+Текущая версия схемы: **5**
+
+#### Иерархическая структура сотрудников
+
+Таблица **employees** поддерживает многоуровневую иерархию через поле `manager_id`:
+- Каждый сотрудник может иметь руководителя (manager_id ссылается на id другого сотрудника)
+- Главный руководитель имеет manager_id = NULL
+- Поддерживается неограниченная вложенность: начальник → подчиненный → подчиненный подчиненного и т.д.
+- При удалении руководителя, manager_id его подчиненных автоматически устанавливается в NULL
 
 ## Безопасность
 
@@ -211,6 +220,56 @@ for rows.Next() {
     rows.Scan(&id, &name, &path)
     fmt.Printf("Проект: %s (%s)\n", name, path)
 }
+```
+
+### Работа с иерархией сотрудников
+
+#### Создание сотрудника
+
+```go
+// Создание главного руководителя (без начальника)
+result, err := db.Exec(
+    "INSERT INTO employees (first_name, last_name, email, position, manager_id) VALUES (?, ?, ?, ?, ?)",
+    "Иван", "Иванов", "ivanov@example.com", "Генеральный директор", nil,
+)
+
+// Создание подчиненного
+result, err := db.Exec(
+    "INSERT INTO employees (first_name, last_name, email, position, manager_id) VALUES (?, ?, ?, ?, ?)",
+    "Петр", "Петров", "petrov@example.com", "Менеджер отдела", 1, // 1 - ID руководителя
+)
+```
+
+#### Получение всех подчиненных руководителя
+
+```go
+rows, err := db.Query(`
+    SELECT id, first_name, last_name, position
+    FROM employees
+    WHERE manager_id = ?
+`, managerID)
+```
+
+#### Получение полной иерархии (рекурсивный запрос)
+
+```go
+rows, err := db.Query(`
+    WITH RECURSIVE employee_hierarchy AS (
+        -- Начальная точка: выбранный сотрудник
+        SELECT id, first_name, last_name, position, manager_id, 0 as level
+        FROM employees
+        WHERE id = ?
+
+        UNION ALL
+
+        -- Рекурсивная часть: все подчиненные
+        SELECT e.id, e.first_name, e.last_name, e.position, e.manager_id, eh.level + 1
+        FROM employees e
+        INNER JOIN employee_hierarchy eh ON e.manager_id = eh.id
+    )
+    SELECT * FROM employee_hierarchy
+    ORDER BY level, last_name
+`, rootEmployeeID)
 ```
 
 ## Лицензия
