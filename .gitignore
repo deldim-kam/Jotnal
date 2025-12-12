@@ -16,6 +16,10 @@ go.work
 
 # Compiled binary
 jotnal
+jotnal-darwin
+
+# Build directory
+build/
 
 # Database files
 *.db

@@ -86,6 +86,62 @@ go build -o jotnal ./cmd/ide
 
 При первом запуске вам будет предложено установить пароль для базы данных.
 
+## Сборка исполняемых файлов
+
+### Использование скрипта сборки
+
+Проект включает удобный скрипт `build.sh` для сборки под разные платформы:
+
+```bash
+# Собрать для всех платформ (Linux и Windows)
+./build.sh all
+
+# Собрать только для Windows (exe файл)
+./build.sh windows
+
+# Собрать только для Linux
+./build.sh linux
+
+# Очистить директорию сборки
+./build.sh clean
+```
+
+Собранные файлы будут находиться в директории `./build/`:
+- `build/jotnal` - исполняемый файл для Linux
+- `build/jotnal.exe` - исполняемый файл для Windows
+
+### Ручная сборка
+
+#### Сборка для Linux:
+```bash
+go build -o jotnal ./cmd/ide
+```
+
+#### Сборка для Windows (кросс-компиляция):
+```bash
+# Требуется установленный MinGW-w64
+CGO_ENABLED=1 GOOS=windows GOARCH=amd64 CC=x86_64-w64-mingw32-gcc go build -o jotnal.exe ./cmd/ide
+```
+
+**Требования для кросс-компиляции Windows:**
+
+Ubuntu/Debian:
+```bash
+sudo apt-get install mingw-w64
+```
+
+Fedora/RHEL:
+```bash
+sudo dnf install mingw64-gcc
+```
+
+### Примечания по сборке
+
+- Exe файл для Windows можно собрать из Linux благодаря кросс-компиляции
+- Размер exe файла: ~14 MB
+- Поддерживается Windows 7 и выше (x64)
+- SQLCipher компилируется статически, дополнительные DLL не требуются
+
 ## Конфигурация
 
 Конфигурация хранится в файле `~/.jotnal/config.json`:
