@@ -10,6 +10,7 @@ import (
 
 	"github.com/deldim-kam/Jotnal/internal/config"
 	"github.com/deldim-kam/Jotnal/internal/database"
+	"github.com/deldim-kam/Jotnal/internal/ui"
 	"golang.org/x/term"
 )
 
@@ -52,8 +53,27 @@ func main() {
 	fmt.Printf("✓ Успешно подключено к базе данных\n")
 	fmt.Printf("✓ Версия схемы БД: %d\n", dbManager.GetVersion())
 
-	// Меню приложения
-	showMenu(cfgManager, dbManager)
+	// Выбор интерфейса
+	fmt.Println("\n=== Выбор интерфейса ===")
+	fmt.Println("1. Графический интерфейс (TUI) - рекомендуется")
+	fmt.Println("2. Текстовое меню (старый интерфейс)")
+	fmt.Print("\nВыберите интерфейс (1-2, Enter для графического): ")
+
+	reader := bufio.NewReader(os.Stdin)
+	input, _ := reader.ReadString('\n')
+	input = strings.TrimSpace(input)
+
+	if input == "2" {
+		// Старый текстовый интерфейс
+		showMenu(cfgManager, dbManager)
+	} else {
+		// Новый графический интерфейс
+		fmt.Println("\nЗапуск графического интерфейса...")
+		app := ui.NewApp(dbManager.GetDB(), cfgManager)
+		if err := app.Run(); err != nil {
+			log.Fatalf("Ошибка при запуске UI: %v", err)
+		}
+	}
 }
 
 func showMenu(cfgManager *config.Manager, dbManager *database.Manager) {
